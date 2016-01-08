@@ -26,7 +26,7 @@ import SocketServer
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-#let's see if I did this right
+## BEN KEEP LOOKING INTO HOW TO SERVE A LOCAL DIRECTORY
 
 
 class MyWebServer(SocketServer.BaseRequestHandler):
@@ -34,10 +34,13 @@ class MyWebServer(SocketServer.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall("OK")
+        #print "{} wrote:".format(self.client_address[0])
+        http_response = "Hello World"
+        self.request.sendall(http_response)
 
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 8080
+    HOST = "localhost" 
+    PORT =  8080
 
     SocketServer.TCPServer.allow_reuse_address = True
     # Create the server, binding to localhost on port 8080
@@ -45,4 +48,6 @@ if __name__ == "__main__":
 
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
+    print 'Serving HTTP on port %s ...' % PORT
     server.serve_forever()
+
