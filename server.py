@@ -26,6 +26,8 @@ import SocketServer
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
+#let's see if I did this right
+
 
 class MyWebServer(SocketServer.BaseRequestHandler):
     
