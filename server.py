@@ -1,6 +1,9 @@
 #  coding: utf-8 
 import SocketServer
 
+#so I can handle get requests
+from BaseHTTPServer import BaseHTTPRequestHandler
+
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,15 +32,34 @@ import SocketServer
 ## BEN KEEP LOOKING INTO HOW TO SERVE A LOCAL DIRECTORY
 
 
-class MyWebServer(SocketServer.BaseRequestHandler):
-    
-    def handle(self):
-        self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
-        #print "{} wrote:".format(self.client_address[0])
-        http_response = "Hello World"
-        self.request.sendall(http_response)
+# class MyWebServer(SocketServer.BaseRequestHandler):
 
+#     def do_GET(self):
+#         if self.path == '/www':
+#             print "did it work?"
+#         self.send_response(200)
+    
+#     def handle(self):
+#         self.data = self.request.recv(1024).strip()
+#         print ("Got a request of: %s\n" % self.data)
+#         #print "{} wrote:".format(self.client_address[0])
+#         http_response = "Hello World"
+#         self.request.sendall(http_response)
+#         #self.send_response(200)
+
+class MyWebServer(BaseHTTPRequestHandler):
+    def do_GET(self):
+        """Respond to a GET request."""
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write("<html><head><title>Title goes here.</title></head>")
+        self.wfile.write("<body><p>This is a test.</p>")
+        # If someone went to "http://something.somewhere.net/foo/bar/",
+        # then s.path equals "/foo/bar/".
+        self.wfile.write("<p>You accessed path: %s</p>" % self.path)
+        self.wfile.write("</body></html>")
+        
 if __name__ == "__main__":
     HOST = "localhost" 
     PORT =  8080
