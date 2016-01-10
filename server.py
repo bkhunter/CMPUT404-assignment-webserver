@@ -1,5 +1,7 @@
 #  coding: utf-8 
 import SocketServer
+import sys
+import urllib2
 
 #so I can handle get requests
 from BaseHTTPServer import BaseHTTPRequestHandler
@@ -49,17 +51,49 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 
 class MyWebServer(BaseHTTPRequestHandler):
     def do_GET(self):
-        """Respond to a GET request."""
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        self.wfile.write("<html><head><title>Title goes here.</title></head>")
-        self.wfile.write("<body><p>This is a test.</p>")
-        # If someone went to "http://something.somewhere.net/foo/bar/",
-        # then s.path equals "/foo/bar/".
-        self.wfile.write("<p>You accessed path: %s</p>" % self.path)
-        self.wfile.write("</body></html>")
-        
+        curdir = '/home/ben/Desktop/c404/Assignments/as1/www'
+        path = self.path
+        toOpen = curdir+path
+        try:
+            if toOpen.endswith(".css"):
+                display = open(toOpen)
+                #note that this potentially makes every file on your computer readable by the internet
+                self.send_response(200)
+                self.send_header('Content-type', 'text/css')
+                self.end_headers()
+                self.wfile.write(display.read())
+                display.close()
+            elif (path == '/'): # explicitly serve index.html
+                #f = open(curdir + sep + self.path) #self.path has /test.html
+                display = open(toOpen+'index.html')
+                #note that this potentially makes every file on your computer readable by the internet
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(display.read())
+                display.close()
+            else:
+                display = open(toOpen)
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(display.read())
+                display.close()
+        except IOError:
+            print 'EXCEPTION!!!'
+            #e = sys.exc_info()[0]
+            #print e
+            self.send_response(404)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            
+            self.wfile.write("<html><head><title> 404 :( .</title></head>")
+            self.wfile.write("<body><p>Error 404 File Not Found.</p>")
+            # If someone went to "http://something.somewhere.net/foo/bar/",
+            # then s.path equals "/foo/bar/".
+            #self.wfile.write("<p>You accessed path: %s</p>" % self.path)
+            self.wfile.write("</body></html>")
+            
 if __name__ == "__main__":
     HOST = "localhost" 
     PORT =  8080
