@@ -50,6 +50,10 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 #         self.request.sendall(http_response)
 #         #self.send_response(200)
 
+def checkDir(path):
+    return '..' in path
+       
+
 class MyWebServer(BaseHTTPRequestHandler):
     def do_GET(self):
         cwd = os.getcwd()
@@ -58,34 +62,42 @@ class MyWebServer(BaseHTTPRequestHandler):
         toOpen = curdir+path
         try:
             if toOpen.endswith(".css"):
-                display = open(toOpen)
-                self.send_response(200)
-                self.send_header('Content-type', 'text/css')
-                self.end_headers()
-                self.wfile.write(display.read())
-                display.close()
+                if checkDir(toOpen):
+                    raise IOError("path traversal attack!")
+                else:
+                    display = open(toOpen)
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/css')
+                    self.end_headers()
+                    self.wfile.write(display.read())
+                    display.close()
             elif path.endswith('/') and (toOpen[-1] != toOpen[-2]): # explicitly serve index.html
-                #f = open(curdir + sep + self.path) #self.path has /test.html
-                display = open(toOpen+'index.html')
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                self.wfile.write(display.read())
-                display.close()
+                if checkDir(toOpen):
+                    raise IOError("path traversal attack!")
+                else:
+                    display = open(toOpen+'index.html')
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    self.wfile.write(display.read())
+                    display.close()
             else:
-                display = open(toOpen)
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                self.wfile.write(display.read())
-                display.close()
+                if checkDir(toOpen):
+                    print "AAAAAAAAAAH"
+                    raise IOError("path traversal attack!")
+                else:
+                    display = open(toOpen)
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    self.wfile.write(display.read())
+                    display.close()
         except IOError:
             #e = sys.exc_info()[0]
             #print e
             self.send_response(404)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            
             self.wfile.write("<html><head><title> 404 :( .</title></head>")
             self.wfile.write("<body><p>Error 404 File Not Found.</p>")
             self.wfile.write("</body></html>")
