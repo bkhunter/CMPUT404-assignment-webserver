@@ -50,9 +50,6 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 #         self.request.sendall(http_response)
 #         #self.send_response(200)
 
-def checkDir(path):
-    return '..' in path
-
 def isValidPath(path):
     return path in ['/', '/index.html', '/base.css','/deep.css', '/deep', '/deep/', '/deep/index.html', '/deep/deep.css']
        
