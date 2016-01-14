@@ -3,6 +3,7 @@ import SocketServer
 import sys
 import urllib2
 import os
+import datetime
 
 #so I can handle get requests
 from BaseHTTPServer import BaseHTTPRequestHandler
@@ -32,29 +33,79 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-## BEN KEEP LOOKING INTO HOW TO SERVE A LOCAL DIRECTORY
+        # an initial line 
+        # zero or more header lines
+        # blank line 
+        # message body'''
+
+        # '''
+        # HTTP/1.1 CODE MSG
+        # Content-Type: text/mimetype
+        # Content-Length: length
+        # msg
+
+        #KNOWN to work:
+        #HTTP/1.1 404 NOT FOUND
+        #Date:2016-01-14 00:16:21.472463
+        #Content-Length:101
+        #text/html; charset=utf-8
 
 
-# class MyWebServer(SocketServer.BaseRequestHandler):
+        #<html><head><title> NOT FOUND :( .</title></head><body><p>Error 404 File Not Found.</p></body></html>
 
-#     def do_GET(self):
-#         if self.path == '/www':
-#             print "did it work?"
-#         self.send_response(200)
-    
-#     def handle(self):
-#         self.data = self.request.recv(1024).strip()
-#         print ("Got a request of: %s\n" % self.data)
-#         #print "{} wrote:".format(self.client_address[0])
-#         http_response = "Hello World"
-#         self.request.sendall(http_response)
-#         #self.send_response(200)
 
 def isValidPath(path):
     return path in ['/', '/index.html', '/base.css','/deep.css', '/deep', '/deep/', '/deep/index.html', '/deep/deep.css']
-       
 
-class MyWebServer(BaseHTTPRequestHandler):
+class MyWebServer1(SocketServer.BaseRequestHandler):
+
+    def parseRequest(self):
+        message = ''
+        path = ''
+        i = 0
+        while self.data[i] != '\n':
+            message += self.data[i]
+            i+=1
+        return message
+                 
+    def makeResponse(self,initLine, dateLine, lenLine, mimeLine, content):
+        response = initLine + '\n' + dateLine + '\n' + lenLine + '\n' + mimeLine + '\n' + '\r\n\r\n' + content
+        return response
+
+    def notFound(self):
+        HTTP_Code = "HTTP/1.1 404 NOT FOUND"
+        date = "Date:"+ str(datetime.datetime.now())
+        errorMsg = "<html><head><title> NOT FOUND :( .</title></head><body><p>Error 404 File Not Found.</p></body></html>" 
+        errorLength = "Content-Length:" + str(len(errorMsg))
+        mimeType = 'text/html; charset=utf-8'
+
+        response = self.makeResponse(HTTP_Code,date,errorLength,mimeType,errorMsg)
+        print response
+        return response
+        
+    def do_GET(self):
+        pass
+        
+    def handle(self):
+        self.data = self.request.recv(1024).strip()
+        print ("Got a request of: %s\n" % self.data)
+        print "---------"
+        message = self.parseRequest()
+        print message
+        good_response = "HTTP/1.0 200 OK\nContent-Type:text/html"
+        print('\n')
+        response = self.notFound()
+        
+        self.request.sendall(response)
+
+        #print "{} wrote:".format(self.client_address[0])
+        #http_response = "Hello World"
+        #self.request.sendall(http_response)
+        #self.send_response(200)
+
+    
+
+class MyWebServer2(BaseHTTPRequestHandler):
 
     def do_GET(self):
         cwd = os.getcwd()
@@ -70,33 +121,33 @@ class MyWebServer(BaseHTTPRequestHandler):
             elif path.endswith('.html'):
                 mimetype = 'text/html'
                 isFile = True
-            toOpen = curDir+path
-            try:
-                if isFile:
-                    if path == '/deep.css':
-                        toOpen = curDir + '/deep' + path
-                    display = open(toOpen)
-                    self.send_response(200)
-                    self.send_header('Content-type', mimetype)
-                    self.end_headers()
-                    self.wfile.write(display.read())
-                    display.close()
-                elif path.endswith('/'): # if the path ends with / display index.html
-                    display = open(toOpen+'index.html')
-                    self.send_response(200)
-                    self.send_header('Content-type', 'text/html')
-                    self.end_headers()
-                    self.wfile.write(display.read())
-                    display.close()
-                elif path.endswith('deep'): # corner case
-                    display = open(toOpen+'/index.html')
-                    self.send_response(200)
-                    self.send_header('Content-type', 'text/html')
-                    self.end_headers()
-                    self.wfile.write(display.read())
-                    display.close()
-            except IOError:
-                self.send_error(404)
+                toOpen = curDir+path
+                try:
+                    if isFile:
+                        if path == '/deep.css':
+                            toOpen = curDir + '/deep' + path
+                            display = open(toOpen)
+                            self.send_response(200)
+                            self.send_header('Content-type', mimetype)
+                            self.end_headers()
+                            self.wfile.write(display.read())
+                            display.close()
+                        elif path.endswith('/'): # if the path ends with / display index.html
+                            display = open(toOpen+'index.html')
+                            self.send_response(200)
+                            self.send_header('Content-type', 'text/html')
+                            self.end_headers()
+                            self.wfile.write(display.read())
+                            display.close()
+                        elif path.endswith('deep'): # corner case
+                            display = open(toOpen+'/index.html')
+                            self.send_response(200)
+                            self.send_header('Content-type', 'text/html')
+                            self.end_headers()
+                            self.wfile.write(display.read())
+                            display.close()
+                except IOError:
+                    self.send_error(404)
         else:
             self.send_error(404)
             # self.send_response(404)
@@ -112,7 +163,7 @@ if __name__ == "__main__":
 
     SocketServer.TCPServer.allow_reuse_address = True
     # Create the server, binding to localhost on port 8080
-    server = SocketServer.TCPServer((HOST, PORT), MyWebServer)
+    server = SocketServer.TCPServer((HOST, PORT), MyWebServer1)
 
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
