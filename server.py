@@ -57,16 +57,27 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 def isValidPath(path):
     return path in ['/', '/index.html', '/base.css','/deep.css', '/deep', '/deep/', '/deep/index.html', '/deep/deep.css']
 
+
 class MyWebServer1(SocketServer.BaseRequestHandler):
 
     def parseRequest(self):
         message = ''
         path = ''
+        isInPath = False
         i = 0
         while self.data[i] != '\n':
             message += self.data[i]
             i+=1
-        return message
+        for char in message:
+            if char == '/':
+                isInPath = True
+            if isInPath:
+                if char == ' ':
+                    break
+                else:
+                    path += char
+                
+        return message,path
                  
     def makeResponse(self,initLine, dateLine, lenLine, mimeLine, content):
         response = initLine + '\n' + dateLine + '\n' + lenLine + '\n' + mimeLine + '\n' + '\r\n\r\n' + content
@@ -83,21 +94,33 @@ class MyWebServer1(SocketServer.BaseRequestHandler):
         print response
         return response
         
-    def do_GET(self):
-        pass
+    def do_GET(self,path):
+        cwd = os.getcwd()
+        curDir = cwd + '/www'
+        mimeType = ''
+        isFile = False;
+
+        if isValidPath(path) :
+            if path.endswith('.css'):
+                mimetype = 'text/css; charset=utf-8'
+                isFile = True
+            elif path.endswith('.html'):
+                mimetype = 'text/html; charset=utf-8'
+                isFile = True
         
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
         print "---------"
-        message = self.parseRequest()
-        print message
+        message,path = self.parseRequest()
+        if message[:3] == 'GET':
+            response = self.do_Get(path)
+        else:
+            response = self.notFound()
+            
         good_response = "HTTP/1.0 200 OK\nContent-Type:text/html"
-        print('\n')
-        response = self.notFound()
-        
         self.request.sendall(response)
-
+        
         #print "{} wrote:".format(self.client_address[0])
         #http_response = "Hello World"
         #self.request.sendall(http_response)
