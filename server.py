@@ -97,16 +97,51 @@ class MyWebServer1(SocketServer.BaseRequestHandler):
     def do_GET(self,path):
         cwd = os.getcwd()
         curDir = cwd + '/www'
-        mimeType = ''
+        date = "Date:"+ str(datetime.datetime.now())
         isFile = False;
 
         if isValidPath(path) :
             if path.endswith('.css'):
-                mimetype = 'text/css; charset=utf-8'
+                mimeType = 'text/css; charset=utf-8'
                 isFile = True
             elif path.endswith('.html'):
-                mimetype = 'text/html; charset=utf-8'
+                mimeType = 'text/html; charset=utf-8'
                 isFile = True
+            try:
+                if isFile:
+                    if path == '/deep.css':
+                        toOpen = curDir + '/deep' + path
+                        display = open(toOpen)
+                        HTTP_Code = "HTTP/1.1 200 OK"
+                        data = display.read()
+                        length = str(len(data))
+                        display.close()
+                        response = self.makeResponse(HTTP_Code,date,length,mimeType,data)
+                        return response
+                    else:
+                        x = self.notFound()
+                        return x
+                else:
+                    x = self.notFound()
+                    return x
+            except IOError:
+                 x = self.notFound()
+                 return x
+                
+                    # elif path.endswith('/'): # if the path ends with / display index.html
+                    #     display = open(toOpen+'index.html')
+                    #     self.send_response(200)
+                    #     self.send_header('Content-type', 'text/html')
+                    #     self.end_headers()
+                    #     self.wfile.write(display.read())
+                    #     display.close()
+                    # elif path.endswith('deep'): # corner case
+                    #     display = open(toOpen+'/index.html')
+                    #     self.send_response(200)
+                    #     self.send_header('Content-type', 'text/html')
+                    #     self.end_headers()
+                    #     self.wfile.write(display.read())
+                    #     display.close()
         
     def handle(self):
         self.data = self.request.recv(1024).strip()
@@ -114,7 +149,9 @@ class MyWebServer1(SocketServer.BaseRequestHandler):
         print "---------"
         message,path = self.parseRequest()
         if message[:3] == 'GET':
-            response = self.do_Get(path)
+            print message
+            print path
+            response = self.do_GET(path)
         else:
             response = self.notFound()
             
@@ -145,32 +182,32 @@ class MyWebServer2(BaseHTTPRequestHandler):
                 mimetype = 'text/html'
                 isFile = True
                 toOpen = curDir+path
-                try:
-                    if isFile:
-                        if path == '/deep.css':
-                            toOpen = curDir + '/deep' + path
-                            display = open(toOpen)
-                            self.send_response(200)
-                            self.send_header('Content-type', mimetype)
-                            self.end_headers()
-                            self.wfile.write(display.read())
-                            display.close()
-                        elif path.endswith('/'): # if the path ends with / display index.html
-                            display = open(toOpen+'index.html')
-                            self.send_response(200)
-                            self.send_header('Content-type', 'text/html')
-                            self.end_headers()
-                            self.wfile.write(display.read())
-                            display.close()
-                        elif path.endswith('deep'): # corner case
-                            display = open(toOpen+'/index.html')
-                            self.send_response(200)
-                            self.send_header('Content-type', 'text/html')
-                            self.end_headers()
-                            self.wfile.write(display.read())
-                            display.close()
-                except IOError:
-                    self.send_error(404)
+            try:
+                if isFile:
+                    if path == '/deep.css':
+                        toOpen = curDir + '/deep' + path
+                        display = open(toOpen)
+                        self.send_response(200)
+                        self.send_header('Content-type', mimetype)
+                        self.end_headers()
+                        self.wfile.write(display.read())
+                        display.close()
+                    elif path.endswith('/'): # if the path ends with / display index.html
+                        display = open(toOpen+'index.html')
+                        self.send_response(200)
+                        self.send_header('Content-type', 'text/html')
+                        self.end_headers()
+                        self.wfile.write(display.read())
+                        display.close()
+                    elif path.endswith('deep'): # corner case
+                        display = open(toOpen+'/index.html')
+                        self.send_response(200)
+                        self.send_header('Content-type', 'text/html')
+                        self.end_headers()
+                        self.wfile.write(display.read())
+                        display.close()
+            except IOError:
+                self.send_error(404)
         else:
             self.send_error(404)
             # self.send_response(404)
