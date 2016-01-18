@@ -42,48 +42,31 @@ compatible) http://docs.python.org/2/library/socketserver.html
 
 Resources
 ========================
-HTTP:
-	Headers:
-		https://en.wikipedia.org/wiki/HTTP_301
-		https://www.w3.org/International/O-HTTP-charset
-		https://msdn.microsoft.com/en-us/library/aa287673%28v=vs.71%29.aspx
-	General:
-		http://ruslanspivak.com/lsbaws-part1/
+**HTTP:**
 
-Python:
-	os module:
-		https://docs.python.org/2/library/os.path.html
-		https://docs.python.org/2/library/os.html#module-os
-		User Nix @ http://stackoverflow.com/questions/5137497/find-current-directory-and-files-directory
-
-	SocketServer:
-		User Ravi Kulkarni @ http://stackoverflow.com/questions/15486064/simple-tcp-server-in-python
-		https://docs.python.org/2/library/socketserver.html
-		https://pymotw.com/2/SocketServer/
+Headers:
+  * https://en.wikipedia.org/wiki/HTTP_301
+  * https://www.w3.org/International/O-HTTP-charset
+  * https://msdn.microsoft.com/en-us/library/aa287673%28v=vs.71%29.aspx
 	
-	BaseHTTPRequestHandler (not used in final submission)
-		https://docs.python.org/3/library/http.server.html#http.server.BaseHTTPRequestHandler
-		https://docs.python.org/3/library/http.server.html
-		Users JosefAssad,carrier @ http://stackoverflow.com/questions/1094185/how-to-serve-any-file-type-with-pythons-basehttprequesthandler
-		https://wiki.python.org/moin/BaseHttpServer
+General:	
+  * http://ruslanspivak.com/lsbaws-part1/
+
+**Python:**
+
+os module:
+  * https://docs.python.org/2/library/os.path.html
+  * https://docs.python.org/2/library/os.html#module-os
+  * User Nix @ http://stackoverflow.com/questions/5137497/find-current-directory-and-files-directory
+
+SocketServer:
+  * User Ravi Kulkarni @ http://stackoverflow.com/questions/15486064/simple-tcp-server-in-python
+  * https://docs.python.org/2/library/socketserver.html
+  * https://pymotw.com/2/SocketServer/
+	
+BaseHTTPRequestHandler (not used in final submission)
+  * https://docs.python.org/3/library/http.server.html#http.server.BaseHTTPRequestHandler
+  * https://docs.python.org/3/library/http.server.html
+  * Users JosefAssad,carrier @ http://stackoverflow.com/questions/1094185/how-to-serve-any-file-type-with-pythons-basehttprequesthandler
+  * https://wiki.python.org/moin/BaseHttpServer
 		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
