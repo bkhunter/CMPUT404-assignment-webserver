@@ -1,12 +1,7 @@
 #  coding: utf-8 
 import SocketServer
 import sys
-import urllib2
 import os
-import datetime
-
-#so I can handle get requests
-from BaseHTTPServer import BaseHTTPRequestHandler
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -33,43 +28,30 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-        # an initial line 
-        # zero or more header lines
-        # blank line 
-        # message body'''
 
-        # '''
-        # HTTP/1.1 CODE MSG
-        # Content-Type: text/mimetype
-        # Content-Length: length
-        # msg
-
-        #KNOWN to work:
-        #HTTP/1.1 404 NOT FOUND
-        #Date:2016-01-14 00:16:21.472463
-        #Content-Length:101
-        #text/html; charset=utf-8
-
-
-        #<html><head><title> NOT FOUND :( .</title></head><body><p>Error 404 File Not Found.</p></body></html>
-
-
+# checks the parsed path, and ensures it is valid
 def isValidPath(path):
-    return path in ['/', '/index.html', '/base.css','/deep.css', '/deep', '/deep/', '/deep/index.html', '/deep/deep.css']
+    path = os.path.abspath(path)     # this evaluates any .. or ./ in the path
+    return path in ['/', '/index.html', '/base.css','/deep.css','/deep','/deep/', '/deep/index.html', '/deep/deep.css']
 
 
 class MyWebServer1(SocketServer.BaseRequestHandler):
 
+    #iterate through the request and determine the verb and path
     def parseRequest(self):
         message = ''
         path = ''
         isInPath = False
         i = 0
+
+        #get the verb
         for element in self.data:
             if element != '\n':
                 message += element
             else:
                 break
+
+        #get the path
         for char in message:
             if char == '/':
                 isInPath = True
@@ -81,40 +63,28 @@ class MyWebServer1(SocketServer.BaseRequestHandler):
                             
         return message,path
         
-    def makeResponse(self,initLine, dateLine, lenLine, mimeLine, content):
-        response = initLine + '\r\n' + dateLine + '\r\n'+ lenLine + '\r\n' + mimeLine + '\r\n\r\n' + content
+    # Helper function that takes each line of the HTTP response
+    # and puts it all together with correct line endings
+    def makeResponse(self,initLine, lenLine, mimeLine, content):
+        response = initLine + '\r\n'+ lenLine + '\r\n' + mimeLine + '\r\n\r\n' + content
         return response
 
-        # HTTP/1.1 200 OK
-        # Date:2016-01-15 14:43:15.668762
-        # 470
-        # text/html; charset=utf-8
 
-        # HTTP/1.1 200 OK
-        # Date:2016-01-15 14:43:15.761839
-        # 48
-        # text/css; charset=utf-8
-
-        # HTTP/1.1 404 NOT FOUND
-        # Date:2016-01-15 14:45:38.355325
-        # Content-Length:101
-        # text/html; charset=utf-8
-
-
+    # When a HTTP 404 encountered call this function, which creates 
+    # the appropriate response
     def notFound(self):
         HTTP_Code = "HTTP/1.1 404 NOT FOUND"
-        date = "Date:"+ str(datetime.datetime.now())
         errorMsg = "<html><head><title> NOT FOUND :( .</title></head><body><p>Error 404 File Not Found.</p></body></html>" 
         errorLength = "Content-Length:" + str(len(errorMsg))
         mimeType = 'Content-Type: text/html; charset=utf-8'
 
-        response = self.makeResponse(HTTP_Code,date,errorLength,mimeType,errorMsg)
+        response = self.makeResponse(HTTP_Code,errorLength,mimeType,errorMsg)
         return response
         
+    #Handle GET Requests
     def do_GET(self,path):
         cwd = os.getcwd()
         curDir = cwd + '/www'
-        date = "Date:"+ str(datetime.datetime.now())
         toOpen = None
 
         if isValidPath(path):
@@ -130,15 +100,15 @@ class MyWebServer1(SocketServer.BaseRequestHandler):
                 mimeType = 'Content-Type:text/html; charset=utf-8'
                 toOpen = curDir + path + '/index.html'
 
-            try:
-                if path == '/deep.css':
+            try:                # in case of IO error
+                if path == '/deep.css': # corner case
                     toOpen = curDir + '/deep' + path
                     contents = open(toOpen,"r")
                     HTTP_Code = "HTTP/1.1 200 OK"
                     data = contents.read()
                     length = "Content-Length:"+ str(len(data))
                     contents.close()
-                    response = self.makeResponse(HTTP_Code,date,length,mimeType,data)
+                    response = self.makeResponse(HTTP_Code,length,mimeType,data)
                     return response
                 else:  
                     if toOpen is None:
@@ -148,18 +118,19 @@ class MyWebServer1(SocketServer.BaseRequestHandler):
                     data = contents.read()
                     length = "Content-Length:"+ str(len(data))
                     contents.close()
-                    response = self.makeResponse(HTTP_Code,date,length,mimeType,data)
+                    response = self.makeResponse(HTTP_Code,length,mimeType,data)
                     return response
             except IOError:
-                x = self.notFound()
-                return x
+                return self.notFound()
         else:
-            x = self.notFound()
-            return x
+            return self.notFound()
                 
+    # Method to handle all requests
     def handle(self):
         self.data = self.request.recv(1024).strip()
         message,path = self.parseRequest()
+
+        #Currently only handles GET requests
         if message[:3] == 'GET':
             response = self.do_GET(path)
         else:
