@@ -3,6 +3,9 @@ import SocketServer
 import sys
 import os
 
+# See README for detailed source and licensing information pertaining to
+# Ben Hunter, Abram Hindle, Eddie Antonio Santos
+
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,10 +35,12 @@ import os
 # checks the parsed path, and ensures it is valid
 def isValidPath(path):
     path = os.path.abspath(path)     # this evaluates any .. or ./ in the path
+    
+    # List of all the paths that I want to serve
     return path in ['/', '/index.html', '/base.css','/deep.css','/deep','/deep/', '/deep/index.html', '/deep/deep.css']
 
 
-class MyWebServer1(SocketServer.BaseRequestHandler):
+class MyWebServer(SocketServer.BaseRequestHandler):
 
     #iterate through the request and determine the verb and path
     def parseRequest(self):
@@ -74,7 +79,7 @@ class MyWebServer1(SocketServer.BaseRequestHandler):
     # the appropriate response
     def notFound(self):
         HTTP_Code = "HTTP/1.1 404 NOT FOUND"
-        errorMsg = "<html><head><title> NOT FOUND :( .</title></head><body><p>Error 404 File Not Found.</p></body></html>" 
+        errorMsg = "<html><head><title> 404 NOT FOUND </title></head><body><p>Error 404 File Not Found.</p></body></html>" 
         errorLength = "Content-Length:" + str(len(errorMsg))
         mimeType = 'Content-Type: text/html; charset=utf-8'
 
@@ -100,15 +105,12 @@ class MyWebServer1(SocketServer.BaseRequestHandler):
                 mimeType = 'Content-Type:text/html; charset=utf-8'
                 toOpen = curDir + path + '/index.html'
 
-            try:                # in case of IO error
-                if path == '/deep.css': # corner case
-                    toOpen = curDir + '/deep' + path
-                    contents = open(toOpen,"r")
-                    HTTP_Code = "HTTP/1.1 200 OK"
-                    data = contents.read()
-                    length = "Content-Length:"+ str(len(data))
-                    contents.close()
-                    response = self.makeResponse(HTTP_Code,length,mimeType,data)
+            try:
+                if path == '/deep.css':
+                    # redirect!
+                    HTTP_Code = "HTTP/1.1 301 Moved Permanently"
+                    location = "Location: http://localhost:8080/deep/deep.css"
+                    response = HTTP_Code + '\r\n' + location + '\r\n\r\n'
                     return response
                 else:  
                     if toOpen is None:
@@ -136,6 +138,7 @@ class MyWebServer1(SocketServer.BaseRequestHandler):
         else:
             response = self.notFound()
 
+
         self.request.sendall(response)
 
 if __name__ == "__main__":
@@ -144,7 +147,7 @@ if __name__ == "__main__":
 
     SocketServer.TCPServer.allow_reuse_address = True
     # Create the server, binding to localhost on port 8080
-    server = SocketServer.TCPServer((HOST, PORT), MyWebServer1)
+    server = SocketServer.TCPServer((HOST, PORT), MyWebServer)
 
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
