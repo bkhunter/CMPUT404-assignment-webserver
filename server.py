@@ -109,7 +109,7 @@ class MyWebServer(SocketServer.BaseRequestHandler):
                 if path == '/deep.css':
                     # redirect!
                     HTTP_Code = "HTTP/1.1 301 Moved Permanently"
-                    location = "Location: http://localhost:8080/deep/deep.css"
+                    location = "Location: http://127.0.0.1:8080/deep/deep.css"
                     response = HTTP_Code + '\r\n' + location + '\r\n\r\n'
                     return response
                 else:  
