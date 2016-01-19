@@ -4,7 +4,7 @@ import sys
 import os
 
 # See README for detailed source and licensing information pertaining to
-# Ben Hunter, Abram Hindle, Eddie Antonio Santos
+# Ben Hunter, Abram Hindle, and Eddie Antonio Santos
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -101,7 +101,9 @@ class MyWebServer(SocketServer.BaseRequestHandler):
             elif path.endswith('/'): # display index.html
                 mimeType = 'Content-Type:text/html; charset=utf-8'
                 toOpen = curDir + path + 'index.html'
-
+            
+            # Try-except for IO errors
+            # for example, if index.html doesn't exist
             try:
                 if path == '/deep':
                     # redirect!
