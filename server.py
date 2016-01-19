@@ -101,15 +101,12 @@ class MyWebServer(SocketServer.BaseRequestHandler):
             elif path.endswith('/'): # display index.html
                 mimeType = 'Content-Type:text/html; charset=utf-8'
                 toOpen = curDir + path + 'index.html'
-            elif path.endswith('deep'): # display deep.html
-                mimeType = 'Content-Type:text/html; charset=utf-8'
-                toOpen = curDir + path + '/index.html'
 
             try:
-                if path == '/deep.css':
+                if path == '/deep':
                     # redirect!
                     HTTP_Code = "HTTP/1.1 301 Moved Permanently"
-                    location = "Location: http://127.0.0.1:8080/deep/deep.css"
+                    location = "Location: http://127.0.0.1:8080/deep/"
                     response = HTTP_Code + '\r\n' + location + '\r\n\r\n'
                     return response
                 else:  
